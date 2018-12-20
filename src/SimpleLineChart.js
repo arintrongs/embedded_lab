@@ -9,13 +9,13 @@ import Tooltip from 'recharts/lib/component/Tooltip'
 import Legend from 'recharts/lib/component/Legend'
 
 const data = [
-  { name: 'Mon', Visits: 2200, Orders: 3400 },
-  { name: 'Tue', Visits: 1280, Orders: 2398 },
-  { name: 'Wed', Visits: 5000, Orders: 4300 },
-  { name: 'Thu', Visits: 4780, Orders: 2908 },
-  { name: 'Fri', Visits: 5890, Orders: 4800 },
-  { name: 'Sat', Visits: 4390, Orders: 3800 },
-  { name: 'Sun', Visits: 4490, Orders: 4300 }
+  { name: 'Mon', S1: 2200, S2: 3400 },
+  { name: 'Tue', S1: 1280, S2: 2398 },
+  { name: 'Wed', S1: 5000, S2: 4300 },
+  { name: 'Thu', S1: 4780, S2: 2908 },
+  { name: 'Fri', S1: 5890, S2: 4800 },
+  { name: 'Sat', S1: 4390, S2: 3800 },
+  { name: 'Sun', S1: 4490, S2: 4300 }
 ]
 class SimpleLineChart extends React.Component {
   componentDidMount(){
@@ -31,8 +31,8 @@ class SimpleLineChart extends React.Component {
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey="Visits" stroke="#82ca9d" />
-          <Line type="monotone" dataKey="Orders" stroke="#8884d8" activeDot={{ r: 8 }} />
+          <Line type="monotone" dataKey="S1" stroke="#82ca9d" />
+          <Line type="monotone" dataKey="S2" stroke="#8884d8" activeDot={{ r: 8 }} />
         </LineChart>
       </ResponsiveContainer>
     )

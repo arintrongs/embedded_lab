@@ -12,7 +12,10 @@ import MenuIcon from '@material-ui/icons/Menu'
 import NotificationsIcon from '@material-ui/icons/Notifications'
 import SimpleLineChart from './SimpleLineChart'
 import SimpleTable from './SimpleTable'
+import Switch from '@material-ui/core/Switch'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
 import axios from 'axios'
+
 require('dotenv').config()
 
 const drawerWidth = 240
@@ -94,7 +97,8 @@ class Dashboard extends React.Component {
     day: [],
     week: [],
     month: [],
-    all: []
+    all: [],
+    isOn: true
   }
 
   handleDrawerOpen = () => {
@@ -104,7 +108,15 @@ class Dashboard extends React.Component {
   handleDrawerClose = () => {
     this.setState({ open: false })
   }
-
+  toggleOnOff = async e => {
+    if (this.state.isOn) {
+      await axios.get('http://localhost:3003/turnoff')
+      this.setState({ isOn: !this.state.isOn })
+    } else {
+      await axios.get('http://localhost:3003/turnon')
+      this.setState({ isOn: !this.state.isOn })
+    }
+  }
   render() {
     const { classes } = this.props
 
@@ -125,6 +137,11 @@ class Dashboard extends React.Component {
               Little Feet Dashboard
             </Typography>
             <IconButton color="inherit">
+              <FormControlLabel
+                control={<Switch value="checkedB" color="secondary" disableTouchRipple disableRipple />}
+                onChange={this.toggleOnOff}
+                label="On/Off"
+              />
               <Badge badgeContent={4} color="secondary">
                 <NotificationsIcon />
               </Badge>
@@ -134,13 +151,13 @@ class Dashboard extends React.Component {
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Typography variant="h4" gutterBottom component="h2">
-            Orders
+            Graph
           </Typography>
           <Typography component="div" className={classes.chartContainer}>
             <SimpleLineChart />
           </Typography>
           <Typography variant="h4" gutterBottom component="h2">
-            Products
+            Statistic
           </Typography>
           <div className={classes.tableContainer}>
             <SimpleTable data={this.state} />

@@ -27,20 +27,23 @@ app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-// Endpoints
+// Microgear
+microgear.on('message', (topic, msg)=>{
+  const data = msg.toString('utf8')
+  if(data == 's1'){
+    firebase.database().ref('s1').push({
+      timestamp : Date.now()
+    })
+    console.log('s1')
+  }else if(data == 's2'){
+    firebase.database().ref('s2').push({
+      timestamp : Date.now()
+    })
+    console.log('s2')
+  }
+})
 
-app.get('/s1', async (req, res) => {
-  firebase.database().ref('s1').push({
-    timestamp : Date.now()
-  })
-  res.send('Success S1')
-})
-app.get('/s2', async (req, res) => {
-  firebase.database().ref('s2').push({
-    timestamp : Date.now()
-  })
-  res.send('Success S2')
-})
+// Endpoints
 app.get('/turnon', async (req, res) => {
   microgear.chat("NodeMCU","on");
   res.send('Success On')
