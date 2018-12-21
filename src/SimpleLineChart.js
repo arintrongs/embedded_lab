@@ -7,6 +7,7 @@ import YAxis from 'recharts/lib/cartesian/YAxis'
 import CartesianGrid from 'recharts/lib/cartesian/CartesianGrid'
 import Tooltip from 'recharts/lib/component/Tooltip'
 import Legend from 'recharts/lib/component/Legend'
+import moment from 'moment'
 
 const data = [
   { name: 'Mon', S1: 2200, S2: 3400 },
@@ -17,15 +18,23 @@ const data = [
   { name: 'Sat', S1: 4390, S2: 3800 },
   { name: 'Sun', S1: 4490, S2: 4300 }
 ]
+const mapped = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 class SimpleLineChart extends React.Component {
-  componentDidMount(){
-    
+  mapPropsToData = () => {
+    const thisDay = moment().day()
+    const startDay = (thisDay + 1) % 7
+    let data = []
+    for (var i = 0; i <= 6; i++) {
+      let idx = (startDay + i) % 7
+      data.push({ name: mapped[idx], S1: this.props.data.graph_s1[idx], S2: this.props.data.graph_s2[idx] })
+    }
+    return data
   }
   render() {
     return (
       // 99% per https://github.com/recharts/recharts/issues/172
       <ResponsiveContainer width="99%" height={320}>
-        <LineChart data={data}>
+        <LineChart data={this.mapPropsToData()}>
           <XAxis dataKey="name" />
           <YAxis />
           <CartesianGrid vertical={false} strokeDasharray="3 3" />

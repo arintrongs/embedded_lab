@@ -21,11 +21,6 @@ const styles = {
 class SimpleTable extends React.Component {
   mapPropsToData = () => {
     const name = ['S1', 'S2']
-    const all = this.props.data.all.map(arr => arr.values.reduce((acc, [timestamp, value]) => acc + parseInt(value), 0))
-    const hour = this.props.data.hour.map(arr => arr.values.reduce((acc, [timestamp, value]) => acc + parseInt(value), 0))
-    const day = this.props.data.day.map(arr => arr.values.reduce((acc, [timestamp, value]) => acc + parseInt(value), 0))
-    const week = this.props.data.week.map(arr => arr.values.reduce((acc, [timestamp, value]) => acc + parseInt(value), 0))
-    const month = this.props.data.month.map(arr => arr.values.reduce((acc, [timestamp, value]) => acc + parseInt(value), 0))
     const result = []
     for (let i = 0; i < 2; i++) {
       result.push(
@@ -33,18 +28,20 @@ class SimpleTable extends React.Component {
           <TableCell component="th" scope="row">
             {name[i]}
           </TableCell>
-          <TableCell align="right">{hour[i] || 0}</TableCell>
-          <TableCell align="right">{day[i] || 0}</TableCell>
-          <TableCell align="right">{week[i] || 0}</TableCell>
-          <TableCell align="right">{month[i] || 0}</TableCell>
-          <TableCell align="right">{all[i] || 0}</TableCell>
+          <TableCell align="right">{this.props.data.hour[i]}</TableCell>
+          <TableCell align="right">{this.props.data.day[i]}</TableCell>
+          <TableCell align="right">{this.props.data.week[i]}</TableCell>
+          <TableCell align="right">{this.props.data.month[i]}</TableCell>
+          <TableCell align="right">{this.props.data.all[i]}</TableCell>
         </TableRow>
       )
     }
+
     return result
   }
   render() {
     const { classes } = this.props
+
     return (
       <Paper className={classes.root}>
         <Table className={classes.table}>
@@ -60,20 +57,6 @@ class SimpleTable extends React.Component {
           </TableHead>
           <TableBody>
             {this.mapPropsToData()}
-            {/* {data.map(n => {
-              return (
-                <TableRow key={n.id}>
-                  <TableCell component="th" scope="row">
-                    {n.name}
-                  </TableCell>
-                  <TableCell align="right">{n.calories}</TableCell>
-                  <TableCell align="right">{n.fat}</TableCell>
-                  <TableCell align="right">{n.carbs}</TableCell>
-                  <TableCell align="right">{n.protein}</TableCell>
-                  <TableCell align="right">{n.protein}</TableCell>
-                </TableRow>
-              )
-            })} */}
           </TableBody>
         </Table>
       </Paper>
@@ -82,7 +65,8 @@ class SimpleTable extends React.Component {
 }
 
 SimpleTable.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  data: PropTypes.object
 }
 
 export default withStyles(styles)(SimpleTable)

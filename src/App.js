@@ -8,17 +8,30 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import IconButton from '@material-ui/core/IconButton'
 import Badge from '@material-ui/core/Badge'
-import MenuIcon from '@material-ui/icons/Menu'
 import NotificationsIcon from '@material-ui/icons/Notifications'
 import SimpleLineChart from './SimpleLineChart'
 import SimpleTable from './SimpleTable'
 import Switch from '@material-ui/core/Switch'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Drawer from '@material-ui/core/Drawer'
+import _ from 'lodash'
 import axios from 'axios'
+import firebase from 'firebase'
+import moment from 'moment'
 
+var config = {
+  apiKey: 'AIzaSyCBOlidiJcMT_pKbESrF-P5x1T9jio-oZs',
+  authDomain: 'embedded-1c817.firebaseapp.com',
+  databaseURL: 'https://embedded-1c817.firebaseio.com',
+  projectId: 'embedded-1c817',
+  storageBucket: 'embedded-1c817.appspot.com',
+  messagingSenderId: '1074912203628'
+}
+firebase.initializeApp(config)
+const db = firebase.database()
 require('dotenv').config()
 
-const drawerWidth = 240
+const drawerWidth = 300
 
 const styles = theme => ({
   root: {
@@ -41,7 +54,19 @@ const styles = theme => ({
       duration: theme.transitions.duration.leavingScreen
     })
   },
-
+  appBarShift: {
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginRight: drawerWidth,
+    transition: theme.transitions.create(['margin', 'width'], {
+      easing: theme.transitions.easing.easeOut,
+      duration: theme.transitions.duration.enteringScreen
+    })
+  },
+  drawer: {
+    width: drawerWidth,
+    flexShrink: 0,
+    textAlign: 'center'
+  },
   menuButton: {
     marginLeft: 12,
     marginRight: 36
@@ -50,7 +75,8 @@ const styles = theme => ({
     display: 'none'
   },
   title: {
-    flexGrow: 1
+    flexGrow: 1,
+    marginLeft: 45
   },
   drawerPaper: {
     position: 'relative',
@@ -87,20 +113,156 @@ const styles = theme => ({
   },
   h5: {
     marginBottom: theme.spacing.unit * 2
+  },
+  notiItemContainer: {
+    height: 65,
+    fontSize: 14,
+    textAlign: 'left',
+    paddingTop: 15,
+    paddingRight: 10,
+    paddingBottom: 15,
+    paddingLeft: 20,
+  },
+  notiItemContainerGray: {
+    height: 65,
+    fontSize: 14,
+    textAlign: 'left',
+    paddingTop: 15,
+    paddingRight: 10,
+    paddingBottom: 15,
+    paddingLeft: 20,
+    backgroundColor: '#cacaca'
+  },
+  notiContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'scroll',
+    height: '800px'
+  },
+  deviceNameS1: {
+    color: '#82ca9d'
+  },
+  deviceNameS2: {
+    color: '#8884d8'
   }
 })
 
 class Dashboard extends React.Component {
   state = {
     open: true,
-    hour: [],
-    day: [],
-    week: [],
-    month: [],
-    all: [],
-    isOn: true
+    hour: [0, 0],
+    day: [0, 0],
+    week: [0, 0],
+    month: [0, 0],
+    all: [0, 0],
+    graph_s1: [0, 0, 0, 0, 0, 0, 0],
+    graph_s2: [0, 0, 0, 0, 0, 0, 0],
+    isOn: true,
+    lastest_added: []
   }
+  async componentDidMount() {
+    db.ref('s1')
+      .orderByChild('timestamp')
+      .limitToLast(5)
+      .on('child_added', snapshot => {
+        this.setState({
+          lastest_added: [...this.state.lastest_added, { device: 's1', timestamp: snapshot.val().timestamp }]
+        })
+      })
+    db.ref('s2')
+      .orderByChild('timestamp')
+      .limitToLast(10)
+      .on('child_added', snapshot => {
+        this.setState({
+          lastest_added: [...this.state.lastest_added, { device: 's2', timestamp: snapshot.val().timestamp }]
+        })
+      })
+    var { lastest_added, open, isOn, ...count } = this.state
+    const now = moment()
+    // Fetch All Once
+    await db.ref('s1').once('value', snapshot => {
+      snapshot.forEach(child => {
+        if (now.diff(moment(child.val().timestamp), 'hours') <= 1) {
+          count.hour[0] += 1
+        }
+        if (now.diff(moment(child.val().timestamp), 'days') <= 1) {
+          count.day[0] += 1
+          count.graph_s1[moment(child.val().timestamp).day()] += 1
+        }
+        if (now.diff(moment(child.val().timestamp), 'weeks') <= 1) {
+          count.week[0] += 1
+        }
+        if (now.diff(moment(child.val().timestamp), 'months') <= 1) {
+          count.month[0] += 1
+        }
+        count.all[0] += 1
+      })
+      this.setState(count)
+    })
+    await db.ref('s2').once('value', snapshot => {
+      snapshot.forEach(child => {
+        if (now.diff(moment(child.val().timestamp), 'hours') <= 1) {
+          count.hour[1] += 1
+        }
+        if (now.diff(moment(child.val().timestamp), 'days') <= 1) {
+          count.day[1] += 1
+          count.graph_s2[moment(child.val().timestamp).day()] += 1
+        }
+        if (now.diff(moment(child.val().timestamp), 'weeks') <= 1) {
+          count.week[1] += 1
+        }
+        if (now.diff(moment(child.val().timestamp), 'months') <= 1) {
+          count.month[1] += 1
+        }
+        count.all[1] += 1
+      })
+      this.setState(count)
+    })
 
+    // Handler Change while on web
+    await db
+      .ref('s1')
+      .endAt()
+      .limitToLast(1)
+      .on('child_added', snapshot => {
+        if (now.diff(moment(snapshot.val().timestamp), 'hours') <= 1) {
+          count.hour[0] += 1
+        }
+        if (now.diff(moment(snapshot.val().timestamp), 'days') <= 1) {
+          count.day[0] += 1
+          count.graph_s1[moment(snapshot.val().timestamp).day()] += 1
+        }
+        if (now.diff(moment(snapshot.val().timestamp), 'weeks') <= 1) {
+          count.week[0] += 1
+        }
+        if (now.diff(moment(snapshot.val().timestamp), 'months') <= 1) {
+          count.month[0] += 1
+        }
+        count.all[0] += 1
+        this.setState(count)
+      })
+    await db
+      .ref('s2')
+      .endAt()
+      .limitToLast(1)
+      .on('child_added', snapshot => {
+        if (now.diff(moment(snapshot.val().timestamp), 'hours') <= 1) {
+          count.hour[1] += 1
+        }
+        if (now.diff(moment(snapshot.val().timestamp), 'days') <= 1) {
+          count.day[1] += 1
+          count.graph_s2[moment(snapshot.val().timestamp).day()] += 1
+        }
+        if (now.diff(moment(snapshot.val().timestamp), 'weeks') <= 1) {
+          count.week[1] += 1
+        }
+        if (now.diff(moment(snapshot.val().timestamp), 'months') <= 1) {
+          count.month[1] += 1
+        }
+        count.all[1] += 1
+        this.setState(count)
+      })
+  }
   handleDrawerOpen = () => {
     this.setState({ open: true })
   }
@@ -119,42 +281,46 @@ class Dashboard extends React.Component {
   }
   render() {
     const { classes } = this.props
-
+    const notilist = _.slice(
+      _.sortBy(this.state.lastest_added, [
+        o => {
+          return -o.timestamp
+        }
+      ]),
+      0,
+      15
+    )
+    // console.log(this.state)
     return (
       <div className={classes.root}>
         <CssBaseline />
-        <AppBar position="absolute" className={classNames(classes.appBar, this.state.open && classes.appBarShift)}>
+        <AppBar position="fixed" className={classNames(classes.appBar, this.state.open && classes.appBarShift)}>
           <Toolbar disableGutters={!this.state.open} className={classes.toolbar}>
-            <IconButton
-              color="inherit"
-              aria-label="Open drawer"
-              onClick={this.handleDrawerOpen}
-              className={classNames(classes.menuButton, this.state.open && classes.menuButtonHidden)}
-            >
-              <MenuIcon />
-            </IconButton>
             <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
               Little Feet Dashboard
             </Typography>
-            <IconButton color="inherit">
-              <FormControlLabel
-                control={<Switch value="checkedB" color="secondary" disableTouchRipple disableRipple />}
-                onChange={this.toggleOnOff}
-                label="On/Off"
-              />
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
+            <FormControlLabel
+              control={<Switch value="checkedB" color="secondary" disableTouchRipple disableRipple />}
+              onChange={this.toggleOnOff}
+              label="On/Off"
+            />
+            <IconButton
+              color="inherit"
+              onClick={() => {
+                this.setState({ open: !this.state.open })
+              }}
+            >
+              <NotificationsIcon />
             </IconButton>
           </Toolbar>
         </AppBar>
         <main className={classes.content}>
           <div className={classes.appBarSpacer} />
           <Typography variant="h4" gutterBottom component="h2">
-            Graph
+            Graph Last 7 Days
           </Typography>
           <Typography component="div" className={classes.chartContainer}>
-            <SimpleLineChart />
+            <SimpleLineChart data={this.state} />
           </Typography>
           <Typography variant="h4" gutterBottom component="h2">
             Statistic
@@ -163,6 +329,31 @@ class Dashboard extends React.Component {
             <SimpleTable data={this.state} />
           </div>
         </main>
+        <Drawer
+          className={classes.drawer}
+          variant="persistent"
+          anchor="right"
+          open={this.state.open}
+          classes={{
+            paper: classes.drawerPaper
+          }}
+          hidden={!this.state.open}
+        >
+          <h1>Watcher</h1>
+          <div className={classes.notiContainer}>
+            {notilist.map((obj, idx) => (
+              <div className={idx%2==0 ? classes.notiItemContainerGray : classes.notiItemContainer} key={idx}>
+                <div className="notiDevice">
+                  {`Something went through : `}
+                  <span className={obj.device == 's1' ? classes.deviceNameS1 : classes.deviceNameS2}>
+                    <b>{obj.device.toUpperCase()}</b>
+                  </span>
+                </div>
+                <div className="notiTime">{`Time : ${moment(obj.timestamp).format('MM/DD/YYYY HH:MM')}`}</div>
+              </div>
+            ))}
+          </div>
+        </Drawer>
       </div>
     )
   }
