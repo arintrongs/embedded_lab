@@ -272,10 +272,10 @@ class Dashboard extends React.Component {
   }
   toggleOnOff = async e => {
     if (this.state.isOn) {
-      await axios.get('http://localhost:3003/turnoff')
+      await axios.get('http://18.136.204.130/turnoff')
       this.setState({ isOn: !this.state.isOn })
     } else {
-      await axios.get('http://localhost:3003/turnon')
+      await axios.get('http://18.136.204.130/turnon')
       this.setState({ isOn: !this.state.isOn })
     }
   }
